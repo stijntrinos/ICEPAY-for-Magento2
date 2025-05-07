@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Icepay\Payment\Gateway\Commands;
 
 use GuzzleHttp\ClientFactory;
+use GuzzleHttp\Exception\ServerException;
 use Icepay\Payment\Config;
+use Icepay\Payment\Data\ErrorResponseBuilder;
 use Icepay\Payment\Data\PaymentResponseBuilder;
 use Icepay\Payment\Gateway\IcepayClient;
 use Icepay\Payment\Logger;
 use Icepay\Payment\Service\Icepay\RedirectUrl;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\UrlInterface;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
@@ -25,6 +28,7 @@ class OrderCommand implements CommandInterface
         private readonly IcepayClient $client,
         private readonly PaymentResponseBuilder $paymentResponseFactory,
         private readonly RedirectUrl $redirectUrl,
+        private readonly ErrorResponseBuilder $errorResponseBuilder,
     ) {}
 
     /**
@@ -32,6 +36,21 @@ class OrderCommand implements CommandInterface
      * @return void
      */
     public function execute(array $commandSubject): void
+    {
+        try {
+            $this->createIcepayCheckout($commandSubject);
+        } catch (ServerException $exception) {
+            $this->logger->error($exception->getMessage());
+
+            $errorResponse = $this->errorResponseBuilder->fromJson($exception->getResponse()->getBody()->__toString());
+
+            throw new LocalizedException(
+                __($errorResponse->message)
+            );
+        }
+    }
+
+    public function createIcepayCheckout(array $commandSubject): void
     {
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = $commandSubject['payment'];
