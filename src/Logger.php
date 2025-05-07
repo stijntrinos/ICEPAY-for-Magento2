@@ -4,33 +4,37 @@ declare(strict_types=1);
 
 namespace Icepay\Payment;
 
-use DateTimeZone;
 use Magento\Framework\Logger\Monolog;
-use Monolog\DateTimeImmutable;
 
-class Logger extends Monolog
+/**
+ * @method info($message, array $context = []): void
+ * @method debug($message, array $context = []): void
+ * @method notice($message, array $context = []): void
+ * @method warning($message, array $context = []): void
+ * @method error($message, array $context = []): void
+ * @method critical($message, array $context = []): void
+ * @method alert($message, array $context = []): void
+ * @method emergency($message, array $context = []): void
+ */
+class Logger
 {
     public function __construct(
+        private readonly Monolog $logger,
         private readonly Config $config,
-        string $name,
-        array $handlers = [],
-        array $processors = [],
-        ?DateTimeZone $timezone = null
     ) {
-        parent::__construct($name, $handlers, $processors, $timezone);
     }
 
-
-    public function addRecord(
-        int $level,
-        string $message,
-        array $context = [],
-        ?DateTimeImmutable $datetime = null
-    ): bool {
+    public function __call(string $name, array $arguments): void
+    {
         if (!$this->config->isDebugEnabled()) {
-            return false;
+            return;
         }
 
-        return parent::addRecord($level, $message, $context, $datetime);
+        if (method_exists($this->logger, $name)) {
+            $this->logger->{$name}(...$arguments);
+            return;
+        }
+
+        throw new \BadMethodCallException("Method {$name} does not exist.");
     }
 }
