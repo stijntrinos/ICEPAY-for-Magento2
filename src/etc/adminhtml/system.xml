@@ -14,7 +14,7 @@
                 <field id="merchant_id" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
                        showInStore="0">
                     <label>Merchant ID</label>
-                    <frontend_class>validate-number</frontend_class>
+                    <frontend_class>validate-number icepay-merchant-id</frontend_class>
                     <comment><![CDATA[You can find this in your <a href="https://portal.icepay.com/" target="_blank">ICEPAY Account</a> under "Merchants".]]></comment>
                     <depends>
                         <field id="active">1</field>
@@ -24,6 +24,7 @@
                        showInWebsite="1" showInStore="0">
                     <label>Merchant Secret</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <frontend_class>icepay-merchant-secret</frontend_class>
                     <comment><![CDATA[You can find this in your <a href="https://portal.icepay.com/" target="_blank">ICEPAY Account</a> under "Merchants".]]></comment>
                     <depends>
                         <field id="active">1</field>
